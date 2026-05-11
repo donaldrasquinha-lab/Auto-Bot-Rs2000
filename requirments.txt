@@ -1,6 +1,6 @@
-plotly==5.22.0
 streamlit
 pandas
 pandas-ta
 upstox-python-sdk
+plotly
 numpy<2.0.0
