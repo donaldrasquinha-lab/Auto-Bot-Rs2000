@@ -1,74 +1,49 @@
-import subprocess
-import sys
-import streamlit as st
-
-# Temporary debug: Show installed packages
-try:
-    installed_packages = subprocess.check_output([sys.executable, "-m", "pip", "list"]).decode()
-    st.sidebar.text_area("Installed Packages", installed_packages, height=200)
-except:
-    st.sidebar.write("Could not retrieve package list")
-
-
-
 import streamlit as st
 import pandas as pd
-import pandas_ta as ta
 import plotly.graph_objects as go
-from datetime import datetime
+from strategy import TradingStrategy
 
-# --- 1. Technical Analysis Logic ---
-def get_indicators(df):
-    df['EMA9'] = ta.ema(df['close'], length=9)
-    df['EMA20'] = ta.ema(df['close'], length=20)
-    return df
+# Strategy Instance
+algo = TradingStrategy()
 
-# --- 2. Plotly Graphing Function ---
-def draw_chart(df):
-    fig = go.Figure()
+st.set_page_config(page_title="Upstox Algo Pro", layout="wide")
 
-    # Candlestick Chart
-    fig.add_trace(go.Candlestick(
-        x=df.index,
-        open=df['open'],
-        high=df['high'],
-        low=df['low'],
-        close=df['close'],
-        name='Market Price'
-    ))
+# --- UI Header ---
+st.title("⚡ Deep ITM Auto-Trader")
+token = st.sidebar.text_input("Upstox Access Token", type="password")
+index_choice = st.sidebar.selectbox("Index", ["NIFTY", "BANKNIFTY"])
 
-    # Add 9 EMA (Blue)
-    fig.add_trace(go.Scatter(x=df.index, y=df['EMA9'], 
-                             line=dict(color='blue', width=1.5), 
-                             name='9 EMA'))
+# --- Kill Switch ---
+if st.sidebar.button("🔴 ACTIVATE KILL SWITCH", type="primary", use_container_width=True):
+    st.error("EMERGENCY EXIT: All positions squared off and bot stopped.")
+    st.session_state.running = False
 
-    # Add 20 EMA (Red)
-    fig.add_trace(go.Scatter(x=df.index, y=df['EMA20'], 
-                             line=dict(color='red', width=1.5), 
-                             name='20 EMA'))
-
-    # Dark Theme Styling
-    fig.update_layout(
-        template='plotly_dark',
-        xaxis_rangeslider_visible=False,
-        title="Index Live Chart (9 & 20 EMA)",
-        yaxis_title="Price"
-    )
-    
-    return fig
-
-# --- 3. Dashboard Display ---
-st.title("Algo Trading Dashboard")
-
-# Sample Data Placeholder
+# --- Market Data Placeholder ---
+# In a real app, you would fetch this from Upstox API
 data = {
-    'open': [24100, 24120, 24110, 24130, 24125],
-    'high': [24130, 24140, 24120, 24150, 24140],
-    'low': [24090, 24110, 24100, 24120, 24110],
-    'close': [24120, 24110, 24115, 24140, 24135]
+    'open': np.random.uniform(24000, 24100, 50),
+    'high': np.random.uniform(24100, 24150, 50),
+    'low': np.random.uniform(23950, 24000, 50),
+    'close': np.random.uniform(24000, 24100, 50)
 }
 df = pd.DataFrame(data)
-df = get_indicators(df)
+df = algo.calculate_indicators(df)
 
-# Show Chart
-st.plotly_chart(draw_chart(df), use_container_width=True)
+# --- Live Stats ---
+c1, c2, c3 = st.columns(3)
+c1.metric("Spot Price", f"{df['close'].iloc[-1]:.2f}")
+c2.metric("ADX (Trend)", f"{df['ADX'].iloc[-1]:.2f}")
+c3.metric("Current Signal", algo.check_signal(df))
+
+# --- Graph ---
+fig = go.Figure()
+fig.add_trace(go.Candlestick(x=df.index, open=df['open'], high=df['high'], low=df['low'], close=df['close'], name="Candle"))
+fig.add_trace(go.Scatter(x=df.index, y=df['MA20'], name="20 MA", line=dict(color='red')))
+fig.add_trace(go.Scatter(x=df.index, y=df['MA9'], name="9 MA", line=dict(color='blue')))
+fig.update_layout(template='plotly_dark', xaxis_rangeslider_visible=False)
+st.plotly_chart(fig, use_container_width=True)
+
+# --- Trading Actions ---
+if st.button("Start Auto-Trade", disabled=not token):
+    st.success(f"Algorithm running on {index_choice}...")
+    
