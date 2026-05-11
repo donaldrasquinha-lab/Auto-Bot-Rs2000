@@ -9,11 +9,6 @@ try:
 except:
     st.sidebar.write("Could not retrieve package list")
 
-# Your original imports
-import pandas as pd
-import pandas_ta as ta
-import plotly.graph_objects as go
-
 
 
 import streamlit as st
