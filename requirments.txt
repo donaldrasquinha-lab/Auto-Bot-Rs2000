@@ -3,3 +3,4 @@ streamlit
 pandas
 pandas-ta
 upstox-python-sdk
+numpy<2.0.0
