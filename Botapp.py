@@ -1,5 +1,7 @@
 import streamlit as st
 import plotly.graph_objects as go
+import plotly.express as px  # Recommended to include this as well
+
 from strategy import TradingStrategy
 import pandas as pd
 
