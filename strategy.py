@@ -1,5 +1,9 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
+from strategy import TradingStrategy  # Ensure strategy.py is in the same folder
+
 
 class TradingStrategy:
     def __init__(self, target_profit=2000, strike_count=5, strike_step=50):
