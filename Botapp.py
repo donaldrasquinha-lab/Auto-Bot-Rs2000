@@ -1,3 +1,21 @@
+import subprocess
+import sys
+import streamlit as st
+
+# Temporary debug: Show installed packages
+try:
+    installed_packages = subprocess.check_output([sys.executable, "-m", "pip", "list"]).decode()
+    st.sidebar.text_area("Installed Packages", installed_packages, height=200)
+except:
+    st.sidebar.write("Could not retrieve package list")
+
+# Your original imports
+import pandas as pd
+import pandas_ta as ta
+import plotly.graph_objects as go
+
+
+
 import streamlit as st
 import pandas as pd
 import pandas_ta as ta
